@@ -80,7 +80,7 @@ func AddHistory(str string) {
 	C.add_history(cstr)
 }
 
-// WriteHistory calls readline read_history
+// ReadHistory calls readline read_history
 func ReadHistory(path string) error {
 	cpath := toCStringOrNil(path)
 	defer freeOrNil(unsafe.Pointer(cpath))
@@ -124,8 +124,42 @@ func UnstifleHistory() int {
 }
 
 // HistoryLen reports the number of entries in the in-memory history list.
-func HistoryLen() int {
-	return int(C._go_history_len())
+func HistoryLength() int {
+	return int(C.history_length)
+}
+
+// HistoryGetHistoryState calls history_get_history_state.
+func HistoryGetHistoryState() (h HistoryState) {
+	ents := C.history_get_history_state()
+	h.Offset = int(ents.offset)
+	h.Flags = int(ents.flags)
+
+	const ptrSize = unsafe.Sizeof((*C.char)(nil))
+	for i := 0; i < int(ents.length); i++ {
+		cent := *(**_Ctype_struct__hist_entry)(
+			unsafe.Pointer(uintptr(unsafe.Pointer(ents.entries)) + uintptr(i)*ptrSize))
+		h.Entries = append(h.Entries, HistEntry{Line: C.GoString(cent.line)})
+	}
+	return h
+}
+
+// HistoryExpand calls history_expand.
+//
+// Returns:
+// 0: no expansions took place
+// 1: expansions took place
+// 2: the returned value should be displayed byt not executed
+// -1: error; the returned string stores the message.
+func HistoryExpand(val string) (out string, ret int) {
+	cval := C.CString(val)
+	defer C.free(unsafe.Pointer(cval))
+	var cout *C.char
+	ret = int(C.history_expand(cval, &cout))
+	if cout != nil {
+		out = C.GoString(cout)
+		C.free(unsafe.Pointer(cout))
+	}
+	return
 }
 
 // ReadInitFile rl_calls read_init_file.
@@ -157,7 +191,7 @@ func _goReadlineComplete(_ *C.char, start, end C.int) **C.char {
 		return (**C.char)(unsafe.Pointer(uintptr(array) + uintptr(i)*ptrSize))
 	}
 	for i, completion := range completions {
-		*slot(i) = (*C.char)(C.CString(completion))
+		*slot(i) = C.CString(completion)
 	}
 	*slot(len(completions)) = nil
 	return (**C.char)(array)

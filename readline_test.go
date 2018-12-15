@@ -10,11 +10,12 @@ import (
 
 func TestReadline(t *testing.T) {
 	readline.Init(readline.Opts{
-		Name: "goreadlinetest",
+		Name:          "goreadlinetest",
+		ExpandHistory: true,
 	})
 	for {
-		line := readline.Readline("aueo>")
-		log.Printf("Got: '%s'", line)
+		line, err := readline.Readline("aueo>")
+		log.Printf("Got: '%s' %v", line, err)
 		expect.NoError(t, readline.AddHistory(line))
 	}
 }
