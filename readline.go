@@ -15,7 +15,6 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/grailbio/base/errors"
 	"github.com/yasushi-saito/readline/creadline"
 )
 
@@ -54,9 +53,10 @@ var (
 // Thread-hostile.
 func Init(o Opts) error {
 	opts = o
-	err := errors.Once{}
 	if opts.InitPath != "" {
-		err.Set(creadline.ReadInitFile(opts.InitPath))
+		if err := creadline.ReadInitFile(opts.InitPath); err != nil {
+			return err
+		}
 	}
 	if opts.HistoryPath == "" {
 		usr, err := user.Current()
@@ -69,7 +69,9 @@ func Init(o Opts) error {
 			opts.HistoryPath = filepath.Join(usr.HomeDir, ".history")
 		}
 	}
-	err.Set(creadline.ReadHistory(opts.HistoryPath))
+	if err := creadline.ReadHistory(opts.HistoryPath); err != nil {
+		return err
+	}
 	if opts.Completer != nil {
 		creadline.SetAttemptedCompletionFunction(opts.Completer)
 	}
@@ -78,7 +80,7 @@ func Init(o Opts) error {
 	}
 	creadline.StifleHistory(opts.MaxHistoryLen)
 	curHistoryLen = creadline.HistoryLength()
-	return err.Err()
+	return nil
 }
 
 // Readline reads one line. Thread-hostile.
@@ -95,7 +97,7 @@ func Readline(prompt string) (string, error) {
 		case 1:
 			return line2, nil
 		case -1:
-			return "", errors.E(line2)
+			return "", fmt.Errorf("history: %s", line2)
 		case 2:
 			fmt.Fprintf(os.Stderr, "%s: %s\n", opts.Name, line2)
 			continue
