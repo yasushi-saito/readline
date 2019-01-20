@@ -19,7 +19,7 @@ package creadline
 #include <readline/history.h>
 
 extern char* _creadline_complete();
-extern char* _creadline_readline_loop(const char* prompt, int* sig);
+extern char* _creadline_readline(const char* prompt, int* sig);
 
 */
 import "C"
@@ -60,7 +60,7 @@ func Readline(prompt string) (string, error) {
 	cprompt := C.CString(prompt)
 	defer C.free(unsafe.Pointer(cprompt))
 	var sig C.int
-	cline := C._creadline_readline_loop(cprompt, &sig)
+	cline := C._creadline_readline(cprompt, &sig)
 	defer C.free(unsafe.Pointer(cline))
 	line := C.GoString(cline)
 	if sig != 0 {

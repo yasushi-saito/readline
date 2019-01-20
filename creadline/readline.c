@@ -20,7 +20,7 @@ void _creadline_signal_handler(int signo) {
 
 // Setup a signal handler, then call readline(). *sig is 0 on normal exit, 1 on
 // signal.
-char* _creadline_readline_loop(const char* prompt, int* sig) {
+char* _creadline_readline(const char* prompt, int* sig) {
   *sig = 0;
   signal(SIGINT, _creadline_signal_handler);
   if (sigsetjmp(_creadline_jmpbuf, 1) != 0) {

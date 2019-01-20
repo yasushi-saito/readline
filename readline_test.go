@@ -12,6 +12,8 @@ func TestReadline(t *testing.T) {
 		Name:          "goreadlinetest",
 		ExpandHistory: true,
 	})
+	nRow, nCol := readline.GetScreenSize()
+	log.Printf("Screen size: %d %d", nRow, nCol)
 	for {
 		line, err := readline.Readline("aueo>")
 		log.Printf("Got: '%s' %v", line, err)

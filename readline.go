@@ -10,8 +10,8 @@
 //
 // Signal handling
 //
-//  Readline intercepts SIGINT (Ctrl-C). On SIGINT, ongoing Readline call aborts
-//  and returns an empty string.
+// Readline intercepts SIGINT (Ctrl-C). On SIGINT, the ongoing Readline call
+// aborts and returns an empty string.
 package readline
 
 import (
@@ -142,6 +142,8 @@ func AddHistory(str string) (err error) {
 	return err
 }
 
+// GetScreenSize returns the current screen size, (#rows, #cols).  It returns
+// nonpositive values when the stdout is not a terminal, or on any error.
 func GetScreenSize() (int, int) {
 	return creadline.GetScreenSize()
 }
