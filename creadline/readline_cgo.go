@@ -18,28 +18,20 @@ package creadline
 #include <readline/readline.h>
 #include <readline/history.h>
 
-extern char* _go_readline_complete();
-extern int _go_history_len();
+extern char* _creadline_complete();
+extern char* _creadline_readline_loop(const char* prompt, int* sig);
 
 */
 import "C"
 import (
-	"os"
-	"os/signal"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
 )
 
-func init() {
-	C.rl_catch_sigwinch = 0
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, unix.SIGWINCH)
-	go func() {
-		for _ = range c {
-			C.rl_resize_terminal()
-		}
-	}()
+func Init() {
+	C.rl_catch_signals = 1
+	C.rl_set_signals()
 }
 
 func errnoToError(err C.int) error {
@@ -63,14 +55,18 @@ func freeOrNil(ptr unsafe.Pointer) {
 	C.free(ptr)
 }
 
-// Readline calls readline.
-func Readline(prompt string) string {
+// Readline calls readline. It returns Interrupt error on signal.
+func Readline(prompt string) (string, error) {
 	cprompt := C.CString(prompt)
 	defer C.free(unsafe.Pointer(cprompt))
-	cline := C.readline(cprompt)
+	var sig C.int
+	cline := C._creadline_readline_loop(cprompt, &sig)
 	defer C.free(unsafe.Pointer(cline))
 	line := C.GoString(cline)
-	return line
+	if sig != 0 {
+		return line, Interrupt
+	}
+	return line, nil
 }
 
 // AddHistory calls readline add_history
@@ -176,13 +172,19 @@ func SetAttemptedCompletionFunction(fn func(line string, start, end int) []strin
 		C.rl_attempted_completion_function = nil
 		return
 	}
-	C.rl_attempted_completion_function = (*C.rl_completion_func_t)(C._go_readline_complete)
+	C.rl_attempted_completion_function = (*C.rl_completion_func_t)(C._creadline_complete)
+}
+
+func GetScreenSize() (int, int) {
+	var crows, ccols C.int
+	C.rl_get_screen_size(&crows, &ccols)
+	return int(crows), int(ccols)
 }
 
 var completionFunction func(line string, start, end int) []string
 
-//export _goReadlineComplete
-func _goReadlineComplete(_ *C.char, start, end C.int) **C.char {
+//export _creadlineComplete
+func _creadlineComplete(_ *C.char, start, end C.int) **C.char {
 	line := C.GoString(C.rl_line_buffer)
 	completions := completionFunction(line, int(start), int(end))
 	const ptrSize = unsafe.Sizeof((*C.char)(nil))

@@ -7,6 +7,11 @@
 //     processInput(line)
 //     readline.AddHistory(line)
 //   }
+//
+// Signal handling
+//
+//  Readline intercepts SIGINT (Ctrl-C). On SIGINT, ongoing Readline call aborts
+//  and returns an empty string.
 package readline
 
 import (
@@ -43,6 +48,9 @@ type Opts struct {
 }
 
 var (
+	// Interrupt is returned by Readline on SIGINT (i.e., Control-C keypress).
+	Interrupt = creadline.Interrupt
+
 	opts          Opts
 	curHistoryLen int
 )
@@ -52,6 +60,7 @@ var (
 //
 // Thread-hostile.
 func Init(o Opts) error {
+	creadline.Init()
 	opts = o
 	if opts.InitPath != "" {
 		if err := creadline.ReadInitFile(opts.InitPath); err != nil {
@@ -86,7 +95,10 @@ func Init(o Opts) error {
 // Readline reads one line. Thread-hostile.
 func Readline(prompt string) (string, error) {
 	for {
-		line := creadline.Readline(prompt)
+		line, err := creadline.Readline(prompt)
+		if err != nil {
+			return line, err
+		}
 		if !opts.ExpandHistory {
 			return line, nil
 		}
@@ -128,4 +140,8 @@ func AddHistory(str string) (err error) {
 		curHistoryLen = opts.MaxHistoryLen
 	}
 	return err
+}
+
+func GetScreenSize() (int, int) {
+	return creadline.GetScreenSize()
 }

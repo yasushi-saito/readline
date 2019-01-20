@@ -31,3 +31,5 @@ func HistoryGetHistoryState() (h HistoryState)                                  
 func HistoryExpand(val string) (out string, ret int)                               { return val, 0 }
 func ReadInitFile(path string) error                                               { return nil }
 func SetAttemptedCompletionFunction(fn func(line string, start, end int) []string) { return }
+
+func Init() {}

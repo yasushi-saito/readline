@@ -1,5 +1,9 @@
 package creadline
 
+import (
+	"errors"
+)
+
 // HistEntry is a Go translation of HIST_ENTRY
 type HistEntry struct{ Line string }
 
@@ -11,3 +15,6 @@ type HistoryState struct {
 	// Flags is a copy of HISTORY_STATE.flags.
 	Flags int
 }
+
+// Interrupt is returned by Readline on SIGINT (i.e., Control-C keypress).
+var Interrupt = errors.New("Interrupt")
