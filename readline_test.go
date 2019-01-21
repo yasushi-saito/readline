@@ -1,6 +1,7 @@
 package readline_test
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
@@ -14,9 +15,11 @@ func TestReadline(t *testing.T) {
 	})
 	nRow, nCol := readline.GetScreenSize()
 	log.Printf("Screen size: %d %d", nRow, nCol)
+	n := 0
 	for {
-		line, err := readline.Readline("aueo>")
-		log.Printf("Got: '%s' %v", line, err)
+		line, err := readline.Readline(fmt.Sprintf("test%02d> ", n))
+		n++
+		fmt.Printf("Got: '%s' %v\n", line, err)
 		if err := readline.AddHistory(line); err != nil {
 			t.Fatal(err)
 		}
