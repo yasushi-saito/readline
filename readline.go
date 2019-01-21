@@ -11,7 +11,7 @@
 // Signal handling
 //
 // Readline intercepts SIGINT (Ctrl-C). On SIGINT, the ongoing Readline call
-// aborts and returns an empty string.
+// aborts and returns an Interrupt error.
 package readline
 
 import (
@@ -26,7 +26,7 @@ import (
 // Opts define options for the readline package.
 type Opts struct {
 	// Name is the name of the application. It is used to generate the default
-	// history pathname (~/.NAME_history).
+	// history pathname (~/.NAME_history). It may be empty.
 	Name string
 	// InitPath is the name of the readline init file. It may be empty.
 	//
@@ -37,13 +37,14 @@ type Opts struct {
 	// Name are empty, then its value will be ~/.history.
 	HistoryPath string
 	// MaxHistoryLen is the maximum number of history entries to retain. If <= 0,
-	// last 10000 entries are retained.
+	// the last 10000 entries will be retained.
 	MaxHistoryLen int
-
 	// ExpandHistory enables history expansion, such as "!tok".
 	ExpandHistory bool
 
-	// Completer is invoked to complete a line. It may be nil.
+	// Completer is invoked to complete a line. It may be nil.  The arg line is
+	// the current input line. Args start and end are the start and limit offset
+	// of the word being completed, respectively.
 	Completer func(line string, start, end int) []string
 }
 
@@ -92,7 +93,10 @@ func Init(o Opts) error {
 	return nil
 }
 
-// Readline reads one line. Thread-hostile.
+// Readline reads one line. On SIGINT, it returns an Inturrupt error.
+// Thread-hostile.
+//
+// REQUIRES: Init has been called.
 func Readline(prompt string) (string, error) {
 	for {
 		line, err := creadline.Readline(prompt)

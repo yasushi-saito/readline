@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-char* _creadline_complete() {
-  extern char* _creadlineComplete();
-  return (char*)_creadlineComplete();
+char** _creadline_complete() {
+  // TODO(saito) Verify that the memory is freed by readline.
+  extern char** _creadlineComplete();
+  return (char**)_creadlineComplete();
 }
 
 static int _creadline_have_input;

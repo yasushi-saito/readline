@@ -188,8 +188,11 @@ var completionFunction func(line string, start, end int) []string
 
 //export _creadlineComplete
 func _creadlineComplete(_ *C.char, start, end C.int) **C.char {
-	line := C.GoString(C.rl_line_buffer)
+	line := C.GoStringN(C.rl_line_buffer, C.rl_end)
 	completions := completionFunction(line, int(start), int(end))
+	if len(completions) == 0 {
+		return nil
+	}
 	const ptrSize = unsafe.Sizeof((*C.char)(nil))
 	array := C.malloc(C.size_t(len(completions)+1) * C.size_t(ptrSize))
 	slot := func(i int) **C.char {

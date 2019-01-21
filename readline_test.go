@@ -12,6 +12,10 @@ func TestReadline(t *testing.T) {
 	readline.Init(readline.Opts{
 		Name:          "goreadlinetest",
 		ExpandHistory: true,
+		Completer: func(line string, start, end int) []string {
+			fmt.Printf("Complete: [%s] %d %d\n", line, start, end)
+			return []string{"Foo", "Bar"}
+		},
 	})
 	nRow, nCol := readline.GetScreenSize()
 	log.Printf("Screen size: %d %d", nRow, nCol)
