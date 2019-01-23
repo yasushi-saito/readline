@@ -1,10 +1,10 @@
 #include <poll.h>
-#include <readline/history.h>
-#include <readline/readline.h>
-#include <signal.h>
 #include <stdio.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <readline/history.h>
+#include <readline/readline.h>
 
 char** _creadline_complete() {
   // TODO(saito) Verify that the memory is freed by readline.
