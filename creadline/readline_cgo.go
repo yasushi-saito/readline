@@ -10,7 +10,6 @@ package creadline
 /*
 #cgo darwin CFLAGS: -I/usr/local/opt/readline/include
 #cgo darwin LDFLAGS: -L/usr/local/opt/readline/lib
-#cgo CFLAGS: -Wall
 #cgo LDFLAGS: -lreadline
 
 #include <stdio.h>
