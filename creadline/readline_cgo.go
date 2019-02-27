@@ -134,7 +134,7 @@ func HistoryGetHistoryState() (h HistoryState) {
 
 	const ptrSize = unsafe.Sizeof((*C.char)(nil))
 	for i := 0; i < int(ents.length); i++ {
-		cent := *(**_Ctype_struct__hist_entry)(
+		cent := *(**C.struct__hist_entry)(
 			unsafe.Pointer(uintptr(unsafe.Pointer(ents.entries)) + uintptr(i)*ptrSize))
 		h.Entries = append(h.Entries, HistEntry{Line: C.GoString(cent.line)})
 	}
